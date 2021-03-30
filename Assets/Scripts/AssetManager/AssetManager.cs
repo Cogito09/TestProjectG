@@ -38,70 +38,13 @@ public class AssetManager
         Debug.Log("Images directory exist.");
     }
 
-    public IEnumerator SyncImages(Action<List<ImageData>> OnFinish)
-    {
-        var allImages = new List<ImageData>();
-        var allFiles = Directory.GetFiles(ImagesFullPath);
-        Debug.Log($"Images full path : {ImagesFullPath}");
-        
-        for (int i = 0; i < allFiles.Length; i++)
-        {
-            var file = allFiles[i];
-            Debug.Log($"File {i+1}");
-            Debug.Log($"Existing file path: {file}");
-
-            var creationTime = File.GetCreationTime(file);
-            Debug.Log($"Creation Time: {creationTime}");
-
-
-            var name = Path.GetFileName(file);
-            Debug.Log($"Name: {name}");
-
-            var texture = new Texture2D(2, 2);
-            yield return null;
-            bool isImageLoaded = false;
-            ReadImageAsync(file, bytes =>
-            {
-                //texture.LoadRawTextureData(bytes);
-                texture.LoadImage(bytes);
-                isImageLoaded = true;
-            });
-
-            yield return new WaitUntil(() => isImageLoaded);
-            
-            ImageData image = new ImageData();
-            image.CreationTime = creationTime;
-            image.Name = name;
-                
-            yield return null;
-            image.Sprite = Sprite.Create(
-                texture,
-                new Rect(0, 0, texture.width, texture.height),
-                Vector2.zero);
-            
-            allImages.Add(image);
-            yield return null;
-        }
-        
-        OnFinish?.Invoke(allImages);
-    }
-    
     public IEnumerator GetImage(string path,Action<ImageData> OnFinish)
     {
-        var file = path;
-        Debug.Log($"Existing file path: {file}");
-
-        var creationTime = File.GetCreationTime(file);
-        Debug.Log($"Creation Time: {creationTime}");
-
-
-        var name = Path.GetFileName(file);
-        Debug.Log($"Name: {name}");
-
+        var creationTime = File.GetCreationTime(path);
+        var name = Path.GetFileName(path);
         var texture = new Texture2D(2, 2);
-        yield return null;
         bool isImageLoaded = false;
-        ReadImageAsync(file, bytes =>
+        ReadImageAsync(path, bytes =>
         {
             //texture.LoadRawTextureData(bytes);
             texture.LoadImage(bytes);
@@ -109,19 +52,14 @@ public class AssetManager
         });
 
         yield return new WaitUntil(() => isImageLoaded);
-            
         ImageData image = new ImageData();
         image.CreationTime = creationTime;
         image.Name = name;
-                
-        yield return null;
         image.Sprite = Sprite.Create(
             texture,
             new Rect(0, 0, texture.width, texture.height),
             Vector2.zero);
-            
-
-        yield return null;
+        
         OnFinish?.Invoke(image);
     }
 
@@ -173,5 +111,10 @@ public class AssetManager
     private void DispathToMainThread(Action action)
     {
         UnityMainThreadDispatcher.Instance().Enqueue(action);
+    }
+
+    public string[] GetAllImagesFilesPaths()
+    {
+        return Directory.GetFiles(ImagesFullPath);
     }
 }

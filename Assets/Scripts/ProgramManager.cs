@@ -13,6 +13,5 @@ public class ProgramManager : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        
     }
 }

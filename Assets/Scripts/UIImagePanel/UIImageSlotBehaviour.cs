@@ -8,29 +8,38 @@ using UnityEngine;
 using UnityEngine.UI;
 using Utils;
 
-public class UIImageSlot : MonoBehaviour
+public class UIImageSlotBehaviour : MonoBehaviour
 {
     [SerializeField] private LayoutElement _layoutElement;
     [SerializeField] private Sprite _noImageSprite;
     [SerializeField] private Image _image;
     [SerializeField] private TextMeshProUGUI _name;
     [SerializeField] private TextMeshProUGUI _timeSinceCreationDate;
-
-    public const float width = 600;
-    private ImageData _config;
+    
+    private ImageData _imageData;
     private long? _creationTime;
-    private long CreationTime => _creationTime ?? DateTimeUtils.ToEpoch(_config.CreationTime);
+    private long CreationTime => _creationTime ?? DateTimeUtils.ToEpoch(_imageData.CreationTime);
     private void Update()
     {
+        if (_imageData == null)
+        {
+            return;
+        }
+        
         SetupTime();
+    }
+
+    private void OnDestroy()
+    {
+        _imageData = null;
     }
 
     public void Setup(ImageData config,RectTransform viewPortRect)
     {
         ClearCache();
         
-        _config = config;
-        if (_config == null)
+        _imageData = config;
+        if (_imageData == null)
         {
             Debug.Log("Image slot config is null");
         }
@@ -48,8 +57,8 @@ public class UIImageSlot : MonoBehaviour
 
     private void ScaleLayoutElement(RectTransform viewPortRect)
     { 
-        var height = _config?.Sprite.texture.height ?? 100;
-        var width = _config?.Sprite.texture.width ?? 100;
+        var height = _imageData?.Sprite.texture.height ?? 100;
+        var width = _imageData?.Sprite.texture.width ?? 100;
 
 
         float slotHeight;
@@ -72,16 +81,16 @@ public class UIImageSlot : MonoBehaviour
         var now = DateTimeUtils.ToEpoch(DateTime.Now);
         var timePassed = now - CreationTime;
        
-        _timeSinceCreationDate.text = $"Created : {DateTimeUtils.TimeWithSymbols((int)timePassed)} ago.";
+        _timeSinceCreationDate.text = $"Time since creation: {DateTimeUtils.TimeWithSymbols((int)timePassed)}";
     }
 
     private void SetupName()
     {
-        _name.text = _config?.Name ?? String.Empty;
+        _name.text = _imageData?.Name ?? String.Empty;
     }
 
     private void SetupImage()
     {
-        _image.sprite = _config?.Sprite ?? _noImageSprite;
+        _image.sprite = _imageData?.Sprite ?? _noImageSprite;
     }
 }
